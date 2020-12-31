@@ -1,0 +1,121 @@
+@import "https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css";
+
+@mixin hidden{
+  display: none;
+}
+
+@mixin clockstyle{
+  text-align:		center;
+  font-size:		30px;
+}
+
+@mixin mini_btn($color, $content) {
+	width: 50px;
+	height: 50px;
+	background-color: $color;
+	border-radius:	10px/10px;
+	font-size:		auto;
+	cursor:			pointer;
+	color:			white;
+	margin:			auto;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-align-items: center; /* 縦方向中央揃え（Safari用） */
+	align-items: center; /* 縦方向中央揃え */
+	-webkit-justify-content: center; /* 横方向中央揃え（Safari用） */
+	justify-content: center; /* 横方向中央揃え */
+	&:after {
+		content:	$content;
+	}
+}
+
+.btn {
+	opacity:	0.7;
+	width:	20%;
+	height:	85px;
+	font-size:	40px;
+
+	cursor: pointer;
+	box-shadow: 7px 7px #000000a0;
+
+	float:	left;
+	list-style-type:	none;
+
+	display: -webkit-flex;
+	display: flex;
+	-webkit-align-items: center; /* 縦方向中央揃え（Safari用） */
+	align-items: center; /* 縦方向中央揃え */
+	-webkit-justify-content: center; /* 横方向中央揃え（Safari用） */
+	justify-content: center; /* 横方向中央揃え */
+
+	color:	#000000;
+	border-radius:		20px/20px;
+	border:	 2px solid #000000a0;
+	margin:	10px 30px;
+
+	&:active{
+		position: relative;
+		top: 7px;
+		right:7px;
+		box-shadow: none;
+	}
+}
+
+.gameover {
+	position:absolute;
+  top:0px;
+  left:0px;
+
+  width:100%;
+  height:100%;
+
+  background-color:#000000;
+  opacity:0.75;
+	@include hidden;
+  z-index:1;
+}
+
+.gamename {
+	text-align:		center;
+	font-style:		italic;
+	font-size:		45px;
+}
+
+.clock {
+  @include clockstyle;
+}
+
+.start {
+	@include mini_btn(#0000ffa0, "開始");
+}
+
+.btn_clear {
+	border: 2px solid #ffffff00;
+	box-shadow: 0 0 #ffffff00;
+	cursor: default;
+}
+
+.ui-dialog-buttonset{
+   width: 100%;
+   display: flex;
+   display: -webkit-flex;
+   text-align: center;
+   justify-content: space-around;
+   -webkit-justify-content: space-around;
+}
+
+#message {
+  text-align: center;
+}
+
+.bomb {
+  background-image:url(./bomb.png);             /* 画像のURLを指定       */
+  background-repeat:  no-repeat;                /* 画像の繰り返しを指定  */
+  background-position:center center;
+  background-size:auto;
+}
+
+#video {
+  width:  100%;
+  height: 100%;
+}

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="utf-8">
+	<title>クリックゲーム</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<video id="video" src="gameclear.mov"></video>
+	<div id="game">
+		<h1 id="gamename" class="gamename"></h1>
+		<p id="start" class="start"></p>
+		<p id="clock" class="clock"></p>
+		<ul id="btns"></ul>
+	</div>
+	<div id="godialog" style="display:none;">
+	<h1 id="message"></h1>
+	</div>
+
+	<script src="jquery-3.4.1.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script>
+		var gnums;
+		var gbombs;
+		var gans;
+		var gamount;
+		var gmsec;
+	  	var gsec;
+	  	var gtimer;
+		var ginterval;
+		var gtov;
+		var gstat;
+		var gaudioElem;
+		const gbuttonNum = 16;
+		const gtimeout = 60000;
+		const gtimwaring = 10000;
+		const gtimhazard = 3000;
+		const gbombper = 1;
+
+		$(document).ready(function(){
+				gameInit();
+		});
+
+		$(function() {
+				$('body').on("click", "#start", function(){
+					createButtons();
+					$('#start').hide();
+					startTimer();
+					$('#clock').show();
+					gans=displaynumber(gnums);
+					$('#gamename').text(gans).css('font-style', 'normal');
+					PlayBGMSound('gamebgm.mp3');
+				});
+
+				$('body').on("click", ".btn", function(){
+					var iddst = "#" + $(this).attr("id");
+					var idsrc =  "#btn" + gans;
+
+					if($(iddst).hasClass('bomb')){
+						gtov=true;
+						gameover();
+						return;
+					}
+
+					if($(iddst).text() === $('#gamename').text()){
+						//console.log($(iddst).text());
+						PlayAnsSound(true);
+						$(iddst).text('').addClass('btn_clear').css('background-color', '#ffffff00');
+
+						for(var i=0; i<gbombs.length; i++){
+							if(gbombs[i] === gans){
+								gbombs.splice(i,1);
+							}
+						}
+
+						gamount--;
+						if(gamount > 0){
+							gans=displaynumber(gnums);
+							$('#gamename').text(gans).css('font-style', 'normal');
+						} else {
+							gameover();
+						}
+					} else {
+						if($(iddst).hasClass('btn_clear') === false){
+							PlayAnsSound(false);
+						}
+					}
+				});
+		});
+
+		function gameInit(){
+			AudioInit();
+			dialogInit();
+			gameReset();
+		}
+
+		function gameReset() {
+				$('#video').hide();
+				$('#gamename').text("クリックゲーム").css('font-style', 'italic').show();
+				$('#start').show();
+				$('#clock').hide();
+				stopTimer();
+				gnums = [];
+				gbombs = [];
+				gans=0;
+				gamount=gbuttonNum;
+				gsec = 0;
+		    	gmsec = 0;
+				gstat = 'normal';
+		}
+
+		function AudioInit(){
+			gaudioElem = new Audio();
+		}
+
+		function PlayAnsSound(ans){
+			laudioElem = new Audio();
+			laudioElem.src = ans === true ? "right.mp3" : "wrong.mp3" ;
+			laudioElem.play();
+			delete laudioElem;
+		}
+
+		function PlayBGMSound(file) {
+				gaudioElem.src = file;
+				gaudioElem.play();
+		}
+
+		function StopBGMSound(){
+			gaudioElem.pause();
+			gaudioElem.currentTime = 0;
+		}
+
+		function createButtons() {
+			var arrays = [];
+			var num;
+			var bg;
+			var col = ['red', 'green', 'yellow', 'pink', 'purple'];
+			for(var i=1; i<=gbuttonNum; i++) {
+				num = displaynumber(arrays);
+				bg = (Math.floor(Math.random()*col.length) + 1);
+
+				$('#btns').append($('<li  class="btn">').css('background-color', col[bg%col.length]).text(num).attr('id', 'btn'+num));
+
+				bomb = (Math.floor(Math.random()*gbombper) + 1) % gbombper;
+
+				if(bomb === 0){
+					gbombs.push(num);
+				}
+			}
+		}
+
+		function displaynumber(x){
+			var num;
+			var flg = false;
+			if(Array.isArray(x) === false){
+				return 0;
+			}
+			while(flg === false){
+				num =  (Math.floor(Math.random()*gbuttonNum) + 1);
+				var hit = false;
+				for(var j=0; j<x.length; j++){
+					if(x[j] === num){
+						hit = true;
+						break;
+					}
+				}
+				if(hit === false){
+					x[j] = num;
+					flg = true;
+				}
+			}
+			return num;
+		}
+
+		function deleteButtons(){
+			$('li').remove();
+			while(gnums.length > 0){
+				gnums.pop();
+			}
+		}
+
+		function startTimer(){
+			$('#clock').css('color', 'black');
+			$('#clock').css('font-weight', 'normal');
+	    	$('#clock').text('00:00').show();
+	   		ginterval = setInterval(countup, 10);
+			gtimer = setTimeout(timeOut,gtimeout);
+		}
+
+		function stopTimer(){
+			clearTimeout(gtimer);
+			clearInterval(ginterval);
+		}
+
+		function countup(){
+				gmsec += 1;
+
+				if (gmsec > 99) {
+					gmsec = 0;
+					gsec += 1;
+				}
+
+				if (gsec > 99) {
+					gsec = 0;
+					gmsec = 0;
+				}
+
+				if(gmsec === 50){
+					for(var i = 0; i < gbombs.length; i++){
+						var idbomb =  "#btn" + gbombs[i];
+						var p = (Math.floor(Math.random()*gbuttonNum) + 1);
+						if (p % 2 !== 0 ){
+							if(hasSpecialButton(gbombs[i]) === false)
+								$(idbomb).text('').addClass('bomb');
+						} else {
+							if(hasSpecialButton(gbombs[i]) === true)
+								$(idbomb).text(gbombs[i]).removeClass('bomb');
+						}
+					}
+				}
+				$('#clock').html(getTimerValue());
+				var timspan = gtimeout-gsec*1000;
+				if(timspan > gtimhazard && timspan <= gtimwaring){
+						if(gstat != 'warning'){
+							gstat = 'warning';
+							$('#clock').css('color', 'red');
+							StopBGMSound();
+							PlayBGMSound("warning.mp3");
+						}
+				} else if(timspan <= gtimhazard){
+						if(gstat != 'hazard'){
+							gstat = 'hazard';
+							$('#clock').css('font-weight', 'bold');
+							StopBGMSound();
+							PlayBGMSound("hazard.mp3");
+						}
+				}
+		}
+
+		function hasSpecialButton(pos){
+			var btn = "#btn" + pos;
+			var ret = false;
+			if($(btn).hasClass('bomb')===true || $(btn).hasClass('btn_clear')===true){
+				ret = true;
+			}
+			return ret;
+		}
+
+		function getTimerValue(){
+			// 0埋め
+			sec_number = ('0' + gsec).slice(-2);
+			msec_number = ('0' + gmsec).slice(-2);
+			return sec_number + ':' +  msec_number;
+		}
+
+		function timeOut(){
+				gtov=true;
+				gameover();
+		}
+
+		function gameover(){
+			StopBGMSound();
+			stopTimer();
+			$('#clock').hide();
+			if(gtov === true){
+					gtov = false;
+					PlayBGMSound("gameover.mp3");
+					$('#message').text('記録なし').show();
+			} else {
+					$('#gamename').hide();
+					PlayGameClearVideo();
+					PlayBGMSound("gameclear.mp3");
+					$('#message').text('time: ' + getTimerValue()).show();
+			}
+			$('#godialog').dialog('open');
+		}
+
+		function dialogInit(){
+			$("#godialog").dialog({
+				autoOpen: false, //呼ばれるまで非表示
+				modal:true, //モーダル表示
+				title:"ゲーム終了", //タイトル
+				width:	600,
+				height:	400,
+				show : {
+						effect : "fade",  // エフェクト名
+						duration : 1500,  // アニメーションの時間
+				},
+				buttons: { //ボタン
+					"OK": function() {
+						$(this).dialog('close');
+						$('#message').hide();
+						StopGameClearVideo();
+						StopBGMSound();
+						deleteButtons();
+						gameReset();
+					}
+				},
+				open:function(event, ui){
+					$(".ui-dialog-titlebar-close").hide();
+				}
+			});
+		}
+
+		function PlayGameClearVideo(){
+			$('#video').css('display', 'block');
+			$('#video').get(0).play();
+		}
+
+		function StopGameClearVideo(){
+			$('#video').css('display', 'none');
+			$('#video').get(0).pause();
+			$('#video').get(0).currentTime=0
+		}
+
+	</script>
+</body>
+</html>
